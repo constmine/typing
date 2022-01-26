@@ -19,8 +19,8 @@ public class TypingGame {
     private String text;
     private final ArrayList<RepeatingScheduler> schedulers = new ArrayList<>();
 
-    private int time;
-    private int round;
+    private int time = cf.getTime();
+    private int round = cf.getRound();
 
     public TypingGame(Plugin plugin, String text, Player player) {
         this.plugin = (Typing) plugin;
@@ -32,8 +32,6 @@ public class TypingGame {
 
     public void onStart(String text) {
         this.text = text;
-        time = cf.getTime();
-        round = cf.getRound();
 
         AllPlayerAction.showTitle(ChatColor.YELLOW + "" + time, text, 0, 1000 * 2, 0);
         setTimer();
@@ -88,9 +86,8 @@ public class TypingGame {
 
     public void changeOwner(Player player) {
         cancelTypingGameScheduler();
-        AllPlayerAction.showTitle(ChatColor.GOLD + player.getName(), "", 0, 1000 * 3, 0);
 
-        isGameEnd();
+        AllPlayerAction.showTitle(ChatColor.GOLD + player.getName(), "", 0, 1000 * 3, 0);
 
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             time = cf.getTime();
@@ -102,17 +99,24 @@ public class TypingGame {
             RandomPlayerPick.gameTitle(player);
 
         }, 60L);
+
+        isGameEnd();
     }
 
     private void isGameEnd() {
         round = round - 1;
+        Bukkit.broadcast(Component.text("1." + round));
         if (round == 0) {
-            Bukkit.getScheduler().cancelTasks(plugin);
             cf.initialize();
+            Bukkit.getScheduler().cancelTasks(plugin);
+
+            Bukkit.broadcast(Component.text("test"));
 
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 AllPlayerAction.showTitle(ChatColor.GREEN + "게임 종료!", "", 0, 1000 * 5, 0);
             }, 60L);
+            round = cf.getRound();
+
         } else {
             resetTime();
             Bukkit.broadcast(Component.text(
