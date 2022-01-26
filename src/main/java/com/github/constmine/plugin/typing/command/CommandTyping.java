@@ -40,6 +40,7 @@ public class CommandTyping implements TabExecutor {
                     cf.broadcastGameState();
 
                 } else if (args[0].equalsIgnoreCase("stop")) {
+
                     Bukkit.broadcast(Component.text("[타자연습] 게임을 중지했습니다."));
 
                     AllPlayerAction.clearTitle();
