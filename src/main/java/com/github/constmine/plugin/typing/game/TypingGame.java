@@ -9,7 +9,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
@@ -20,8 +19,8 @@ public class TypingGame {
     private String text;
     private final ArrayList<RepeatingScheduler> schedulers = new ArrayList<>();
 
-    private int time = cf.getTime();
-    private int round = cf.getRound();
+    private int time;
+    private int round;
 
     public TypingGame(Plugin plugin, String text, Player player) {
         this.plugin = (Typing) plugin;
@@ -33,6 +32,9 @@ public class TypingGame {
 
     public void onStart(String text) {
         this.text = text;
+        time = cf.getTime();
+        round = cf.getRound();
+
         AllPlayerAction.showTitle(ChatColor.YELLOW + "" + time, text, 0, 1000 * 2, 0);
         setTimer();
     }
@@ -84,7 +86,7 @@ public class TypingGame {
         isGameEnd();
     }
 
-    public void changeOwner(@NotNull Player player) {
+    public void changeOwner(Player player) {
         cancelTypingGameScheduler();
         AllPlayerAction.showTitle(ChatColor.GOLD + player.getName(), "", 0, 1000 * 3, 0);
 
