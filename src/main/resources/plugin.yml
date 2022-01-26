@@ -1,0 +1,9 @@
+name: Typing
+version: '${project.version}'
+main: com.github.constmine.plugin.typing.Typing
+api-version: 1.18
+authors: [ constmine ]
+description: 각별님이 만드신 영상 "타자 연습"을 참고하여 만들어 보았습니다.
+
+commands:
+  typing:
