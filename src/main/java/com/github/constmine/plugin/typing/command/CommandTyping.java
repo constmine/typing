@@ -17,6 +17,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.bukkit.Bukkit.getLogger;
+
 public class CommandTyping implements TabExecutor {
 
     private final Typing plugin;
@@ -27,33 +29,47 @@ public class CommandTyping implements TabExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if(sender instanceof Player) {
-            Player player = (Player) sender;
+        if (!(sender instanceof Player)) {
+            getLogger().info("해당 커맨드는 Player만 입력할 수 있습니다.");
+        }
 
-            if (args.length > 0) {
-                if (args[0].equalsIgnoreCase("start")) {
-                    if (cf.isGameStart()) {
-                        cf.initialize();
-                        Bukkit.broadcast(Component.text("\n[타자연습] ==자동으로 재시작 합니다.==\n"));
-                    }
-                    new RandomPlayerPick(plugin, player);
-                    cf.broadcastGameState();
+        if (canSubCommand(args, "start")) {
+            startGame();
 
-                } else if (args[0].equalsIgnoreCase("stop")) {
+        } else if (canSubCommand(args, "stop")) {
+            stopGame();
+        }
 
-                    Bukkit.broadcast(Component.text("[타자연습] 게임을 중지했습니다."));
+        return false;
+    }
 
-                    AllPlayerAction.clearTitle();
-                    cf.changeGameStart();
-                    cf.initialize();
-                    Bukkit.getScheduler().cancelTasks(plugin);
-
-                }
-            }
-        } else {
-            Bukkit.getLogger().info("해당 커맨드는 Player만 입력할 수 있습니다.");
+    private boolean canSubCommand(String[] args, String command) {
+        if(args.length > 0) {
+            return args[0].equalsIgnoreCase(command);
         }
         return false;
+    }
+
+    private void onClear() {
+        AllPlayerAction.clearTitle();
+        cf.initialize();
+        Bukkit.getScheduler().cancelTasks(plugin);
+    }
+
+    private void startGame() {
+        //이미 게임 진행중
+        if(cf.isGameStart()) {
+            AllPlayerAction.broadcast("\n[타자연습] ==자동으로 재시작 합니다.==\n");
+            onClear();
+        }
+
+        new RandomPlayerPick(plugin);
+        cf.broadcastGameState();
+    }
+
+    private void stopGame() {
+        AllPlayerAction.broadcast("[타자연습] 게임을 중지했습니다.");
+        onClear();
     }
 
 

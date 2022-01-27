@@ -7,20 +7,23 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 import java.time.Duration;
+import java.util.Collection;
 
 public class AllPlayerAction {
 
+    public static final Collection<? extends Player> players = Bukkit.getOnlinePlayers();
+
     public static void showTitle(String title, String subtitle, long fadeIn, long stay, long fadeout) {
-        for(Player players : Bukkit.getOnlinePlayers()) {
-            players.showTitle(Title.title(
+        for(Player player : players) {
+            player.showTitle(Title.title(
                     Component.text(title),
                     Component.text(subtitle),
                     Title.Times.of(Duration.ofMillis(fadeIn), Duration.ofMillis(stay), Duration.ofMillis(fadeout))));
         }
     }
     public static void showTitle(Component title, Component subtitle, long fadeIn, long stay, long fadeout) {
-        for(Player players : Bukkit.getOnlinePlayers()) {
-            players.showTitle(Title.title(
+        for(Player player : players) {
+            player.showTitle(Title.title(
                     title,
                     subtitle,
                     Title.Times.of(Duration.ofMillis(fadeIn), Duration.ofMillis(stay), Duration.ofMillis(fadeout))));
@@ -28,8 +31,8 @@ public class AllPlayerAction {
     }
 
     public static void clearTitle() {
-        for(Player players : Bukkit.getOnlinePlayers()) {
-            players.showTitle(Title.title(
+        for(Player player : players) {
+            player.showTitle(Title.title(
                     Component.text(""),
                     Component.text("")
             ));
@@ -37,15 +40,19 @@ public class AllPlayerAction {
     }
 
     public static void playSound(Sound sound) {
-        for(Player players : Bukkit.getOnlinePlayers()) {
-            players.playSound(players, sound, 1F, 1F);
+        for(Player player : players) {
+            player.playSound(player, sound, 1F, 1F);
         }
     }
 
     public static void stopSound(Sound sound) {
-        for(Player players : Bukkit.getOnlinePlayers()) {
-            players.stopSound(sound);
+        for(Player player : players) {
+            player.stopSound(sound);
         }
+    }
+
+    public static void broadcast(String string) {
+        Bukkit.broadcast(Component.text(string));
     }
 
 }

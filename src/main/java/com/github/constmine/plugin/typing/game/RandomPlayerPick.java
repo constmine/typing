@@ -5,34 +5,38 @@ import com.github.constmine.plugin.typing.scheduler.RepeatingScheduler;
 import com.github.constmine.plugin.typing.util.AllPlayerAction;
 import com.github.constmine.plugin.typing.util.cf;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
 
-
 public class RandomPlayerPick {
-    /*Todo
-     * 모든 Online플레이어중에 하나를 고름
-     *   + Player를 고르는 효과 (색깔 바꾸기, 플레이어 바꾸기, 소리 효과)
-     */
 
     private final Typing plugin;
-    private final Player player;
+    private List<Player> gamePlayers;
     private int count;
 
-    public RandomPlayerPick(Plugin plugin, Player player) {
+    public RandomPlayerPick(Plugin plugin) {
         this.plugin = (Typing) plugin;
-        this.player = player;
+        onPick();
+    }
 
+    /**
+     * 실행부분
+     */
+    public void onPick() {
         onRandom();
-        onRollPlayer();
+        this.gamePlayers = sortPlayerList();
+        onShow();
     }
 
     /**
@@ -40,43 +44,38 @@ public class RandomPlayerPick {
      */
     private void onRandom() {
         Random random = new Random();
-
         count = random.nextInt(10) + 10;
         cf.set("Count", count);
     }
 
     /*
-     * 쓰레드 지연이 안되서 직접 일일이 작업.
+     * 같은 월드에 있는 Player -> player.getWorld().getPlayers() -> List<Player>
+     * 같은 서버에 있는 Player -> Bukkit.getOnlinePlayers -> Collection<? extends Player>
      */
-    private void onRollPlayer() {
-        List<Player> playerList = player.getWorld().getPlayers();
-        List<Player> newlist = new ArrayList<>();
-        for(int i = 0, k = 0; i < count; i++) {
-            try {
-                newlist.add(playerList.get(k));
-                k += 1;
-            } catch (IndexOutOfBoundsException e) {
-                k = 0;
-                newlist.add(playerList.get(k));
-                k += 1;
-            }
+    private List<Player> sortPlayerList() {
+        Collection<? extends Player> list = Bukkit.getOnlinePlayers();
+        List<Player> playerList = new ArrayList<>();
+        for(int i = 0; i < count; i++) {
+            if(!list.iterator().hasNext()) { list = Bukkit.getOnlinePlayers(); }
+            playerList.add(list.iterator().next());
         }
-        onshow(newlist);
+
+        return playerList;
     }
 
-    private void onshow(List<Player> players) {
+    private void onShow() {
         final int[] i = {0};
         new RepeatingScheduler(plugin, 0L, 2L) {
             @Override
             public void run() {
                 AllPlayerAction.stopSound(Sound.ENTITY_PLAYER_LEVELUP);
                 if(i[0] < count - 1) {
-                    AllPlayerAction.showTitle(players.get(i[0]).getName(), "", 0, 100,0);
+                    AllPlayerAction.showTitle(gamePlayers.get(i[0]).getName(), "", 0, 100,0);
                     i[0] += 1;
 
                 } else {
-                    lastTitle(players.get(i[0]));
-                    cf.setOwnerPlayer(players.get(i[0]));
+                    lastTitle(gamePlayers.get(i[0]));
+                    cf.setOwnerPlayer(gamePlayers.get(i[0]));
                     cancel();
                 }
                 AllPlayerAction.playSound(Sound.ENTITY_PLAYER_LEVELUP);
@@ -90,21 +89,26 @@ public class RandomPlayerPick {
         new RepeatingScheduler(plugin, 0L, 2L) {
             @Override
             public void run() {
-                Random random = new Random();
-
-                float r = random.nextFloat();
-                float g = random.nextFloat();
-                float b = random.nextFloat();
-                if (tick[0] > 0) {
-                    AllPlayerAction.showTitle(Component.text(player.getName()).color(TextColor.color(r, g, b)), Component.text(""), 0, 100, 0);
-                } else {
+                if (tick[0] <= 0) {
                     gameTitle(player);
                     cf.changeGameStart();
                     cancel();
+                } else {
+                    AllPlayerAction.showTitle(randomRGB(player.getName()), Component.text(""), 0, 100, 0);
+                    tick[0] -= 1;
                 }
-                tick[0] -= 1;
             }
         };
+    }
+
+    private TextComponent randomRGB(String text) {
+        Random random = new Random();
+
+        float r = random.nextFloat();
+        float g = random.nextFloat();
+        float b = random.nextFloat();
+
+        return Component.text(text).color(TextColor.color(r, g, b));
     }
 
     public static void gameTitle(Player player) {

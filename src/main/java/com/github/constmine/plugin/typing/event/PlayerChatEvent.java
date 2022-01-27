@@ -24,37 +24,36 @@ public class PlayerChatEvent implements Listener {
     @EventHandler
     public void onChat(AsyncChatEvent event) {
 
-        if(cf.isGameStart()) {
-            Player player = event.getPlayer();
-            String text = changeTextType(event.message());
+        if (!cf.isGameStart()) { return; }
 
-            if(text.length() > 16) {
-                player.sendMessage(Component.text(ChatColor.RED + "16자 이하로 입력해주세요!"));
-                event.setCancelled(true);
-                return;
-            }
+        Player player = event.getPlayer();
+        String text = changeTextType(event.message());
 
-            if(equalOwner(player) && !cf.hasText()) {                                   //player가 Owner이고, 진행중인 text가 없을떄
-                cf.setText(text);
-
-                if(!hasTypingGame()) {
-                    game = new TypingGame(plugin, text, player);
-                } else {
-                    game.onStart(text);
-                }
-                event.setCancelled(true);
-
-            } else if(equalOwner(player) && cf.hasText()) {                             //player가 Owner이고, 진행중인 text가 있을때
-                player.sendMessage(Component.text("이미 진행자 입니다."));
-                event.setCancelled(true);
-
-            } else if(!equalOwner(player) && cf.hasText()) {                            //player가 Owner가 아니고, 진행중인 text가 있을때
-                if(equalText(text)) {
-                    game.changeOwner(player);
-                }
-            }
-
+        if (isOverTyping(text, player)) {
+            chatEventCancel(event);
         }
+
+        if (equalOwner(player) && !cf.hasText()) {                                   //player가 Owner이고, 진행중인 text가 없을떄
+            cf.setText(text);
+
+            if (!hasTypingGame()) {
+                game = new TypingGame(plugin, text);
+            } else {
+                game.onStart(text);
+            }
+            event.setCancelled(true);
+
+        } else if (equalOwner(player) && cf.hasText()) {                             //player가 Owner이고, 진행중인 text가 있을때
+            player.sendMessage(Component.text("이미 진행자 입니다."));
+            event.setCancelled(true);
+
+        } else if (!equalOwner(player) && cf.hasText()) {                            //player가 Owner가 아니고, 진행중인 text가 있을때
+            if (equalText(text)) {
+                game.changeOwner(player);
+            }
+        }
+
+
     }
 
     public boolean equalText(String text) {
@@ -72,4 +71,14 @@ public class PlayerChatEvent implements Listener {
     public boolean hasTypingGame() {
         return game != null;
     }
+
+    public boolean isOverTyping(String text, Player target) {
+        if(text.length() > 16) {
+            target.sendMessage(Component.text(ChatColor.RED + "16자 이하로 입력해주세요!"));
+            return true;
+        }
+        return false;
+    }
+
+    public void chatEventCancel(AsyncChatEvent event) { event.setCancelled(true); }
 }
