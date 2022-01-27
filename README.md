@@ -8,4 +8,6 @@
 
 /typing stop 
 
+config파일에서 round 와 time 을 설정할 수 있습니다.
+
 그냥 만드는데에 집중하다보니 코드가 많이 복잡합니다.
